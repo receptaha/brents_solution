@@ -9,8 +9,9 @@ int is_prime_number(unsigned int number) {
         }else {
             divisor++;
         }
+        if (counter > 1) return 0;
     }
-    return counter == 1 ? 1 : 0;
+    return 1;
 }
 
 unsigned int first_prime_number_after(unsigned int number) {
