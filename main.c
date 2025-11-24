@@ -6,7 +6,7 @@
 
 int main()
 {
-    struct AddressSpace* as = init_address_space();
+    AddressSpace* as = init_address_space();
     free(as);
     return 0;
 }
