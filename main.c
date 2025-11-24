@@ -7,6 +7,6 @@
 int main()
 {
     struct AddressSpace* as = init_address_space();
-    print_hash_table(as);
+    free(as);
     return 0;
 }
