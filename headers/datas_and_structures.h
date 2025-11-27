@@ -9,8 +9,8 @@ typedef struct Person {
 }Person;
 
 typedef struct AddressSpace {
-    unsigned int record_count;
-    unsigned int hash_table_size;
+    unsigned long long record_count;
+    unsigned long long hash_table_size;
     Person** hash_table;
 }AddressSpace;
 

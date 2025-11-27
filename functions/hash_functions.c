@@ -4,12 +4,12 @@
 #include "../headers/prime_functions.h"
 #include "../headers/hash_functions.h"
 
-unsigned int hash_1(unsigned long key, unsigned int address_size) {
+unsigned long long hash_1(unsigned long long key, unsigned long long address_size) {
     return key % address_size;
 }
 
-unsigned int hash_2(unsigned long key, unsigned int address_size) {
-    return key / address_size;
+unsigned int hash_2(unsigned long long key, unsigned long long address_size) {
+    return key / address_size + 1;
 }
 
 AddressSpace* init_address_space() {
@@ -19,7 +19,7 @@ AddressSpace* init_address_space() {
         exit(-1);
     }
 
-    unsigned int smallest_prime_number = first_prime_number_after(1);
+    unsigned long long smallest_prime_number = first_prime_number_after(1);
 
     as->hash_table_size = smallest_prime_number;
     as->record_count = 0;
@@ -30,45 +30,47 @@ AddressSpace* init_address_space() {
         exit(-1);
     }
 
-    for (unsigned int i = 0; i < as-> hash_table_size; i++) {
+    for (unsigned long long i = 0; i < as-> hash_table_size; i++) {
         as->hash_table[i] = NULL;
     }
     return as;
 }
 
 void print_hash_table(AddressSpace* as) {
-    printf("\nTable size : %d\t Record count : %d\n", as->hash_table_size, as->record_count);
+    printf("\nTable size : %llu\t Record count : %llu\n", as->hash_table_size, as->record_count);
 
-    for (unsigned int i = 0; i < as->hash_table_size; i++) {
+    for (unsigned long long i = 0; i < as->hash_table_size; i++) {
         if (as->hash_table[i] != NULL) {
-            printf("%u: Record ID: %llu\n", i, as->hash_table[i]->id);
+            printf("%llu: Record ID: %llu\n", i, as->hash_table[i]->id);
         } else {
-            printf("%u: NULL\n", i);
+            printf("%llu: NULL\n", i);
         }
     }
 }
 
 void restore_hash_table(AddressSpace* as) {
-    unsigned int new_size = first_prime_number_after(as->hash_table_size);
-    unsigned int first_size = as->hash_table_size;
+    unsigned long long new_size = first_prime_number_after(as->hash_table_size);
+    unsigned long long first_size = as->hash_table_size;
     Person** temp_hash = malloc(sizeof(Person*) * first_size);
-    for (int i = 0; i < first_size; i++) {
+    for (unsigned long long i = 0; i < first_size; i++) {
         temp_hash[i] = as->hash_table[i];
     }
     free(as->hash_table);
     as->hash_table = malloc(sizeof(Person*) * new_size);
     as->hash_table_size = new_size;
     as->record_count = 0;
-    for (int i = 0; i < new_size; i++) {
+    for (unsigned long long i = 0; i < new_size; i++) {
         as->hash_table[i] = NULL;
     }
-    for (int i = 0; i < first_size; i++) {
-        if (temp_hash[i] != NULL) force_insert(as, temp_hash[i]);
+    for (unsigned long long i = 0; i < first_size; i++) {
+        if (temp_hash[i] != NULL) {
+            force_insert(as, temp_hash[i]);
+        }
     }
     free(temp_hash);
 }
 
-Person* newRecord(unsigned long long id, int age, char* name) {
+Person* newRecord(unsigned long long id, unsigned int age, char* name) {
     Person* new = malloc(sizeof(Person));
 
     if (new == NULL) {
@@ -84,11 +86,11 @@ Person* newRecord(unsigned long long id, int age, char* name) {
 }
 
 
-int spaceFinder(Person* per, AddressSpace* as) {
-    int size = as -> hash_table_size;
-    int h1 = per -> id % size;
-    int h2 = (per -> id / size) + 1;
-    int probe = 0;
+unsigned long long spaceFinder(Person* per, AddressSpace* as) {
+    unsigned long long size = as -> hash_table_size;
+    unsigned long long h1 = hash_1(per->id, size);
+    unsigned int h2 = hash_2(per->id, size);
+    unsigned long long probe = 0;
     while (as -> hash_table[(h1 + h2 * probe) % size] != NULL && probe != size) {
         probe++;
     }
@@ -105,27 +107,34 @@ void force_insert(AddressSpace* as, Person* per) {
         printf("Person is NULL, exiting...");
         exit(-1);
     }
+
+    unsigned long long address = find(as, per->id);
+    if (address != -1) {
+        printf("\nID : %llu is already exist on address %llu\n", per->id, address);
+        return;
+    }
+
     while (!insert(as, per->id, per->age, per->name)) {
         restore_hash_table(as);
     }
     printf("\n" "%llu force inserted\n", per->id);
 }
 
-int insert(AddressSpace* as, unsigned long long id, int age, char* name) {
-    if (as -> hash_table_size * 0.8 <= as -> record_count) {
+int insert(AddressSpace* as, unsigned long long id, unsigned int age, char* name) {
+    if (as->record_count * 100 / as->hash_table_size > 80) {
         return 0;
     }
 
     Person* new = newRecord(id, age, name);
-    int size = as -> hash_table_size;
-    int index = new -> id % size;
-    int news_quotient = (new -> id / size) + 1;
+    unsigned long long size = as -> hash_table_size;
+    unsigned long long index = hash_1(new->id, size);
+    unsigned int news_quotient = hash_2(new->id, size);
     Person* old = as -> hash_table[index];
 
     if (old != NULL) {
-        int olds_quotient = (old->id / size) + 1;
-        int newCounter = spaceFinder(new, as);
-        int oldCounter = spaceFinder(old, as);
+        unsigned int olds_quotient = hash_2(old->id, size);
+        unsigned long long newCounter = spaceFinder(new, as);
+        unsigned long long oldCounter = spaceFinder(old, as);
 
         if (newCounter == 0 && oldCounter == 0) {
             return 0;
@@ -146,9 +155,9 @@ int insert(AddressSpace* as, unsigned long long id, int age, char* name) {
     return 1;
 }
 
-void get(AddressSpace* as, unsigned long long id) {
-    unsigned int quotient = id / as->hash_table_size + 1;
-    unsigned int index = id % as->hash_table_size;
+unsigned long long find(AddressSpace* as, unsigned long long id) {
+    unsigned long long index = hash_1(id, as->hash_table_size);
+    unsigned int quotient = hash_2(id, as->hash_table_size);
     unsigned int counter = 0;
 
     while (counter < as->hash_table_size) {
@@ -167,10 +176,9 @@ void get(AddressSpace* as, unsigned long long id) {
     }
 
     if (counter >= as->hash_table_size) {
-        printf("\nID %llu not found\n", id);
-    } else {
-        printf("\nAddress : %u\t ID : %llu\n", index, id);
+        return -1;
     }
+    return index;
 }
 
 

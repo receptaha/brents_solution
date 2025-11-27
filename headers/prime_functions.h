@@ -1,7 +1,7 @@
 #ifndef PRIME_FUNCTIONS_H
 #define PRIME_FUNCTIONS_H
 
-int is_prime_number(unsigned int number);
-unsigned int first_prime_number_after(unsigned int number);
+unsigned int is_prime_number(unsigned int number);
+unsigned long long first_prime_number_after(unsigned long long number);
 
 #endif

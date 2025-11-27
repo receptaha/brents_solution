@@ -49,9 +49,12 @@ int main()
     person7->name = "Mehmet X4";
     force_insert(as, person7);
 
+    Person* person8 = malloc(sizeof(Person));
+    person8->id = 12376;
+    person8->age = 21;
+    person8->name = "Mehmet X4";
+    force_insert(as, person8);
+
     print_hash_table(as);
-
-    get(as, 129387123);
-
     return 0;
 }
