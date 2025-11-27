@@ -88,16 +88,16 @@ int spaceFinder(Person* per, AddressSpace* as) {
     int size = as -> hash_table_size;
     int h1 = per -> id % size;
     int h2 = (per -> id / size) + 1;
-    int prope = 0;
-    while (as -> hash_table[(h1 + h2 * prope) % size] != NULL && prope != size) {
-        prope++;
+    int probe = 0;
+    while (as -> hash_table[(h1 + h2 * probe) % size] != NULL && probe != size) {
+        probe++;
     }
 
-    if (prope >= size) {
+    if (probe >= size) {
         printf("Couldn't find any space for id : %llu\n", per->id);
         return 0;
 }
-    return prope;
+    return probe;
 }
 
 void force_insert(AddressSpace* as, Person* per) {
